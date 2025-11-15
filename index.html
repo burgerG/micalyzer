@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Micalyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 1em;
+            padding: 20px;
+            background: #1a1a1a;
+            border-radius: 12px;
+            border: 1px solid #333;
+        }
+
+        h1 {
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.1em;
+        }
+
+        .column {
+            display: grid;
+            gap: 1em;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1em;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: #1a1a1a;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #333;
+        }
+
+        .card h2 {
+            color: #ffffff;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .granted {
+            background: #1e3a28;
+            color: #4ade80;
+            border: 1px solid #4ade80;
+        }
+
+        .denied {
+            background: #3a1e1e;
+            color: #f87171;
+            border: 1px solid #f87171;
+        }
+
+        .warning {
+            background: #3a2e1e;
+            color: #fbbf24;
+            padding: 1em;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            background: #374151;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button.record {
+            background: #dc2626;
+        }
+
+        button.record:hover {
+            background: #b91c1c;
+        }
+
+        button.record.recording {
+            background: #dc2626;
+            animation: pulse 1.5s infinite;
+        }
+
+        button.play {
+            background: #059669;
+        }
+
+        button.play:hover {
+            background: #047857;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .meter {
+            width: 100%;
+            height: 40px;
+            background: #333;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 2px solid #444;
+        }
+
+        .level {
+            height: 100%;
+            background: linear-gradient(90deg, #444, #888);
+            width: 0%;
+            transition: width 0.1s;
+            position: relative;
+        }
+
+        .level::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            background: #252525;
+            border-radius: 8px;
+            border-left: 4px solid #2563eb;
+        }
+
+        .info-label {
+            color: #888;
+            font-weight: 600;
+        }
+
+        .info-value {
+            color: #ffffff;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9em;
+        }
+
+        .visualizer-container {
+            margin: 25px 0;
+        }
+
+        .visualizer {
+            width: 100%;
+            height: 200px;
+            background: #000;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .recording-section {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #333;
+        }
+
+        .recording-controls {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .recording-info {
+            margin: 15px 0;
+            padding: 15px;
+            background: #252525;
+            border-radius: 8px;
+            border-left: 4px solid #d97706;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .level-markers {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            color: #888;
+            font-size: 0.8em;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1em;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: #252525;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2563eb;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🎤 Micalyzer</h1>
+            <p class="subtitle">Real-time microphone diagnostics and recording</p>
+        </header>
+
+        <div class="grid">
+            <!-- Left Column -->
+            <div class="column">
+                <div class="card">
+                    <h2>📊 Input Analysis</h2>
+
+                    <div id="status" class="status">Click "Start Analysis" to begin</div>
+
+                    <div class="controls">
+                        <button id="startBtn">
+                            <span>▶</span> Start Analysis
+                        </button>
+                        <button id="stopBtn" disabled>
+                            <span>⏹</span> Stop Analysis
+                        </button>
+                    </div>
+
+                    <div class="meter">
+                        <div id="levelBar" class="level"></div>
+                    </div>
+                    <div class="level-markers">
+                        <span>0%</span>
+                        <span>25%</span>
+                        <span>50%</span>
+                        <span>75%</span>
+                        <span>100%</span>
+                    </div>
+                    <div style="text-align: center; margin: 10px 0;">
+                        <span id="levelText">0%</span> |
+                        <span id="dbText">-∞ dB</span>
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-label">Peak Level</div>
+                            <div id="peakLevel" class="stat-value">0%</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Average Level</div>
+                            <div id="avgLevel" class="stat-value">0%</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Clipping</div>
+                            <div id="clippingCount" class="stat-value">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>🔧 Device Information</h2>
+                    <div class="info-grid" id="deviceInfo">
+                        <!-- Device info will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="column">
+                <div class="card">
+                    <h2>📈 Audio Visualizer</h2>
+                    <div class="visualizer-container">
+                        <canvas id="visualizer" class="visualizer"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>🎙️ Recording Test</h2>
+                    <div class="recording-section">
+                        <p>Record a short audio sample to hear exactly what your microphone captures:</p>
+
+                        <div class="recording-controls">
+                            <button id="recordBtn" class="record" disabled>
+                                <span>●</span> Record (3s)
+                            </button>
+                            <button id="playBtn" class="play" disabled>
+                                <span>▶</span> Play
+                            </button>
+                            <button id="saveBtn" disabled>
+                                <span>💾</span> Save
+                            </button>
+                        </div>
+
+                        <div class="recording-info">
+                            <div id="recordStatus">Ready to record</div>
+                            <div id="recordTimer" style="margin-top: 8px; font-weight: bold;"></div>
+                        </div>
+
+                        <audio id="audioPlayer" class="audio-player" controls style="display: none;"></audio>
+
+                        <div class="warning">
+                            <strong>💡 Analysis Tip:</strong> Compare the recording with real-time levels. If levels are
+                            high but recording is quiet (or vice versa), there may be gain staging issues.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const recordBtn = document.getElementById('recordBtn');
+        const playBtn = document.getElementById('playBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const statusDiv = document.getElementById('status');
+        const levelBar = document.getElementById('levelBar');
+        const levelText = document.getElementById('levelText');
+        const dbText = document.getElementById('dbText');
+        const peakLevel = document.getElementById('peakLevel');
+        const avgLevel = document.getElementById('avgLevel');
+        const clippingCount = document.getElementById('clippingCount');
+        const deviceInfo = document.getElementById('deviceInfo');
+        const visualizer = document.getElementById('visualizer');
+        const recordStatus = document.getElementById('recordStatus');
+        const recordTimer = document.getElementById('recordTimer');
+        const audioPlayer = document.getElementById('audioPlayer');
+
+        // Audio variables
+        let audioContext;
+        let analyser;
+        let microphone;
+        let javascriptNode;
+        let canvasCtx = visualizer.getContext('2d');
+        let mediaRecorder;
+        let audioChunks = [];
+        let recordingStream;
+
+        // Statistics
+        let peakLevelValue = 0;
+        let clippingCounter = 0;
+        let levelReadings = [];
+
+        // Initialize canvas size
+        function initCanvas() {
+            visualizer.width = visualizer.offsetWidth;
+            visualizer.height = visualizer.offsetHeight;
+        }
+
+        // Format bytes to readable size
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Update device information
+        function updateDeviceInfo(stream) {
+            const audioTracks = stream.getAudioTracks();
+            const settings = audioTracks[0].getSettings();
+
+            const infoItems = [
+                { label: 'Device Name', value: audioTracks[0].label || 'Default Microphone' },
+                { label: 'Device ID', value: audioTracks[0].id || 'N/A' },
+                { label: 'Sample Rate', value: `${settings.sampleRate || 44100} Hz` },
+                { label: 'Channel Count', value: settings.channelCount || 1 },
+                { label: 'Latency', value: settings.latency ? `${settings.latency.toFixed(2)}s` : 'N/A' },
+                { label: 'Auto Gain Control', value: settings.autoGainControl !== undefined ? settings.autoGainControl : 'N/A' },
+                { label: 'Echo Cancellation', value: settings.echoCancellation !== undefined ? settings.echoCancellation : 'N/A' },
+                { label: 'Noise Suppression', value: settings.noiseSuppression !== undefined ? settings.noiseSuppression : 'N/A' },
+                { label: 'Codec', value: settings.codec || 'Default' }
+            ];
+
+            deviceInfo.innerHTML = infoItems.map(item => `
+                <div class="info-item">
+                    <span class="info-label">${item.label}</span>
+                    <span class="info-value">${item.value}</span>
+                </div>
+            `).join('');
+        }
+
+        // Start audio analysis
+        async function startAnalysis() {
+            try {
+                statusDiv.textContent = "🔄 Requesting microphone access...";
+                statusDiv.className = "status warning";
+
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: { ideal: false },
+                        noiseSuppression: { ideal: false },
+                        autoGainControl: { ideal: false },
+                        channelCount: 1,
+                        sampleRate: 48000
+                    }
+                });
+
+                recordingStream = stream;
+                statusDiv.textContent = "✅ Microphone connected successfully!";
+                statusDiv.className = "status granted";
+
+                // Setup audio context and nodes
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+
+                analyser.smoothingTimeConstant = 0.7;
+                analyser.fftSize = 2048;
+
+                microphone.connect(analyser);
+                analyser.connect(javascriptNode);
+                javascriptNode.connect(audioContext.destination);
+
+                // Update device information
+                updateDeviceInfo(stream);
+
+                // Setup audio processor
+                javascriptNode.onaudioprocess = function () {
+                    const array = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteFrequencyData(array);
+
+                    // Calculate levels
+                    let sum = 0;
+                    let max = 0;
+                    for (let i = 0; i < array.length; i++) {
+                        sum += array[i];
+                        if (array[i] > max) max = array[i];
+                    }
+
+                    const average = sum / array.length;
+                    const percentage = Math.min(100, (average / 255) * 150); // Scale for better visibility
+                    const db = 20 * Math.log10(average / 255);
+
+                    // Update statistics
+                    if (percentage > peakLevelValue) {
+                        peakLevelValue = percentage;
+                        peakLevel.textContent = Math.round(peakLevelValue) + '%';
+                    }
+
+                    levelReadings.push(percentage);
+                    if (levelReadings.length > 100) levelReadings.shift();
+
+                    const avgReading = levelReadings.reduce((a, b) => a + b, 0) / levelReadings.length;
+                    avgLevel.textContent = Math.round(avgReading) + '%';
+
+                    // Check for clipping (levels above 95%)
+                    if (percentage > 95) {
+                        clippingCounter++;
+                        clippingCount.textContent = clippingCounter;
+                    }
+
+                    // Update UI
+                    levelBar.style.width = percentage + '%';
+                    levelText.textContent = Math.round(percentage) + '%';
+                    dbText.textContent = db > -Infinity ? db.toFixed(1) + ' dB' : '-∞ dB';
+
+                    // Update visualizer
+                    drawVisualizer(array);
+                };
+
+                // Enable recording
+                recordBtn.disabled = false;
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+
+                initCanvas();
+
+            } catch (error) {
+                statusDiv.textContent = "❌ Error: " + error.message;
+                statusDiv.className = "status denied";
+                console.error("Error accessing microphone:", error);
+            }
+        }
+
+        // Draw audio visualizer
+        function drawVisualizer(dataArray) {
+            canvasCtx.fillStyle = '#000000';
+            canvasCtx.fillRect(0, 0, visualizer.width, visualizer.height);
+
+            const barWidth = (visualizer.width / dataArray.length) * 2.5;
+            let barHeight;
+            let x = 0;
+
+            for (let i = 0; i < dataArray.length; i++) {
+                barHeight = (dataArray[i] / 255) * visualizer.height;
+
+                const hue = i / dataArray.length * 360;
+                canvasCtx.fillStyle = `hsl(${hue}, 70%, 60%)`;
+                canvasCtx.fillRect(x, visualizer.height - barHeight, barWidth, barHeight);
+
+                x += barWidth + 1;
+            }
+        }
+
+        // Stop analysis
+        function stopAnalysis() {
+            if (javascriptNode) {
+                javascriptNode.disconnect();
+                javascriptNode.onaudioprocess = null;
+            }
+            if (microphone) {
+                microphone.disconnect();
+            }
+            if (audioContext) {
+                audioContext.close();
+            }
+            if (recordingStream) {
+                recordingStream.getTracks().forEach(track => track.stop());
+            }
+
+            // Reset UI
+            levelBar.style.width = '0%';
+            levelText.textContent = '0%';
+            dbText.textContent = '-∞ dB';
+            canvasCtx.clearRect(0, 0, visualizer.width, visualizer.height);
+
+            statusDiv.textContent = "⏹ Analysis stopped";
+            statusDiv.className = "status";
+
+            recordBtn.disabled = true;
+            playBtn.disabled = true;
+            saveBtn.disabled = true;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+
+            // Reset statistics
+            peakLevelValue = 0;
+            clippingCounter = 0;
+            levelReadings = [];
+            peakLevel.textContent = '0%';
+            avgLevel.textContent = '0%';
+            clippingCount.textContent = '0';
+        }
+
+        // Record audio
+        async function recordAudio() {
+            if (!recordingStream) return;
+
+            try {
+                recordBtn.classList.add('recording');
+                recordBtn.disabled = true;
+                playBtn.disabled = true;
+                saveBtn.disabled = true;
+
+                audioChunks = [];
+                mediaRecorder = new MediaRecorder(recordingStream, {
+                    mimeType: 'audio/webm;codecs=opus'
+                });
+
+                let timeLeft = 3;
+                recordTimer.textContent = `Recording... ${timeLeft}s`;
+
+                const countdown = setInterval(() => {
+                    timeLeft--;
+                    recordTimer.textContent = `Recording... ${timeLeft}s`;
+                    if (timeLeft <= 0) {
+                        clearInterval(countdown);
+                        mediaRecorder.stop();
+                    }
+                }, 1000);
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    clearInterval(countdown);
+
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+
+                    audioPlayer.src = audioUrl;
+                    audioPlayer.style.display = 'block';
+
+                    recordStatus.textContent = `Recording complete - ${formatBytes(audioBlob.size)}`;
+                    recordTimer.textContent = '';
+
+                    recordBtn.classList.remove('recording');
+                    recordBtn.disabled = false;
+                    playBtn.disabled = false;
+                    saveBtn.disabled = false;
+                };
+
+                mediaRecorder.start();
+
+            } catch (error) {
+                console.error("Recording error:", error);
+                recordStatus.textContent = "Recording failed: " + error.message;
+                recordBtn.classList.remove('recording');
+                recordBtn.disabled = false;
+            }
+        }
+
+        // Play recorded audio
+        function playRecording() {
+            if (audioPlayer.src) {
+                audioPlayer.play();
+            }
+        }
+
+        // Save recording
+        function saveRecording() {
+            if (audioChunks.length === 0) return;
+
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const url = URL.createObjectURL(audioBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `microphone-test-${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Event Listeners
+        startBtn.addEventListener('click', startAnalysis);
+        stopBtn.addEventListener('click', stopAnalysis);
+        recordBtn.addEventListener('click', recordAudio);
+        playBtn.addEventListener('click', playRecording);
+        saveBtn.addEventListener('click', saveRecording);
+
+        // Initialize
+        initCanvas();
+        window.addEventListener('resize', initCanvas);
+
+        // Add some sample device info for initial state
+        deviceInfo.innerHTML = `
+            <div class="info-item">
+                <span class="info-label">Status</span>
+                <span class="info-value">Click "Start Analysis" to begin</span>
+            </div>
+        `;
+    </script>
+</body>
+
+</html>
